@@ -6,7 +6,7 @@ A premium, strictly monochrome, ultra-minimalist TikTok video and MP3 audio down
 
 ## 🎨 Preview & UI Design
 
-*Place your application screenshots here!*
+
 
 - **Dark Mode**: 
   ![Dark Mode Screenshot](/path/to/dark-screenshot.png)
