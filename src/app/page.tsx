@@ -43,6 +43,8 @@ interface VideoData {
 export default function Home() {
   const [url, setUrl] = useState("");
   const [loading, setLoading] = useState(false);
+  const [sharing, setSharing] = useState(false);
+  const [canShareFiles, setCanShareFiles] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<VideoData | null>(null);
   const [history, setHistory] = useState<VideoData[]>([]);
@@ -82,6 +84,17 @@ export default function Home() {
       }
     } catch (e) {
       console.error("Failed to load history from localStorage", e);
+    }
+
+    if (typeof window !== "undefined" && navigator.canShare) {
+      try {
+        const dummyFile = new File([""], "dummy.txt", { type: "text/plain" });
+        if (navigator.canShare({ files: [dummyFile] })) {
+          setCanShareFiles(true);
+        }
+      } catch (e) {
+        console.warn("navigator.canShare is not supported or failed", e);
+      }
     }
   }, []);
 
@@ -216,6 +229,55 @@ export default function Home() {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+  };
+
+  const triggerShare = async (mediaUrl: string, title: string, type: "video" | "audio") => {
+    if (!mediaUrl) return;
+
+    setSharing(true);
+    const sanitizedTitle = title
+      .replace(/[^a-zA-Z0-9\s-]/g, "")
+      .trim()
+      .substring(0, 30)
+      .replace(/\s+/g, "_");
+
+    const extension = type === "audio" ? "mp3" : "mp4";
+    const filename = `${sanitizedTitle || "tiktok"}_no_wm.${extension}`;
+    const contentType = type === "audio" ? "audio/mpeg" : "video/mp4";
+
+    const proxyUrl = `/api/video-proxy?url=${encodeURIComponent(mediaUrl)}&filename=${encodeURIComponent(
+      filename
+    )}&audio=${type === "audio"}`;
+
+    addToast("Скачиваем файл для отправки...", "info");
+
+    try {
+      const response = await fetch(proxyUrl);
+      if (!response.ok) throw new Error("Не удалось скачать файл через прокси");
+      const blob = await response.blob();
+      const file = new File([blob], filename, { type: contentType });
+
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({
+          files: [file],
+          title: title || "TikTok Download",
+          text: title || "TikTok Download",
+        });
+        addToast("Готово! Выберите 'Сохранить видео' или отправьте его", "success");
+      } else {
+        throw new Error("Ваш браузер не поддерживает отправку этого типа файлов");
+      }
+    } catch (err: any) {
+      console.error(err);
+      if (err.name !== "AbortError" && err.name !== "NotAllowedError") {
+        addToast("Не удалось открыть меню отправки, пробуем обычное скачивание...", "error");
+        triggerDirectDownload(mediaUrl, title, type);
+      } else {
+        addToast("Отменено пользователем", "info");
+      }
+    } finally {
+      setSharing(false);
+    }
   };
 
   const handleSelectHistoryItem = (item: VideoData) => {
@@ -362,17 +424,33 @@ export default function Home() {
 
               {/* Action Buttons */}
               <div className="actions-block">
+                {canShareFiles && (
+                  <button
+                    onClick={() => triggerShare(result.videoUrl, result.title, "video")}
+                    className="btn-share-video"
+                    disabled={sharing}
+                  >
+                    {sharing ? (
+                      <Loader2 className="spinner" size={20} style={{ animation: "spin 1s linear infinite" }} />
+                    ) : (
+                      <Share2 size={20} />
+                    )}
+                    {sharing ? "Скачивание для отправки..." : "Сохранить в галерею / Поделиться 📲"}
+                  </button>
+                )}
                 <button
                   onClick={() => triggerDirectDownload(result.videoUrl, result.title, "video")}
                   className="btn-download-video"
+                  disabled={sharing}
                 >
                   <Video size={20} />
-                  Скачать видео (без вотермарка) 🎬
+                  Скачать файл видео напрямую 🎬
                 </button>
                 {result.audioUrl && (
                   <button
                     onClick={() => triggerDirectDownload(result.audioUrl, result.title, "audio")}
                     className="btn-download-audio"
+                    disabled={sharing}
                   >
                     <Music size={20} />
                     Скачать аудио (MP3) 🎵

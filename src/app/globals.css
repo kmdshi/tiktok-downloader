@@ -251,6 +251,34 @@ body {
   border-color: var(--button-border);
 }
 
+.btn-share-video {
+  background: transparent;
+  color: var(--text-primary);
+  border: 2px dashed var(--color-border);
+  border-radius: 6px;
+  padding: 0.85rem 1.5rem;
+  font-family: var(--font-sans);
+  font-weight: 700;
+  font-size: 1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  transition: all 0.15s ease;
+  width: 100%;
+}
+
+.btn-share-video:hover {
+  background: var(--color-surface-hover);
+  border-style: solid;
+}
+
+.btn-share-video:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 /* Result Card */
 .result-card {
   width: 100%;
