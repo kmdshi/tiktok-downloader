@@ -1,28 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { promises as fs } from "fs";
-import path from "path";
-
-const activationFilePath = path.join(
-  process.cwd(),
-  "src",
-  "data",
-  "activation.json"
-);
-
-async function validateDeviceToken(token: string | null, requestHost: string | null): Promise<boolean> {
-  if (requestHost && (requestHost.startsWith("localhost") || requestHost.startsWith("127.0.0.1"))) {
-    return true;
-  }
-  try {
-    if (!token) return false;
-    const fileContent = await fs.readFile(activationFilePath, "utf-8");
-    const state = JSON.parse(fileContent);
-    const tokens: string[] = state.deviceTokens || [];
-    return tokens.includes(token);
-  } catch (e) {
-    return false;
-  }
-}
 
 export async function GET(request: NextRequest) {
   try {
@@ -30,16 +6,6 @@ export async function GET(request: NextRequest) {
     const mediaUrl = searchParams.get("url");
     const filename = searchParams.get("filename") || "tiktok-download.mp4";
     const isAudio = searchParams.get("audio") === "true";
-    const token = searchParams.get("token");
-
-    const host = request.headers.get("host");
-    const isAuthorized = await validateDeviceToken(token, host);
-    if (!isAuthorized) {
-      return NextResponse.json(
-        { error: "Access Denied: Device is not authorized." },
-        { status: 401 }
-      );
-    }
 
     if (!mediaUrl) {
       return NextResponse.json(

@@ -1,42 +1,7 @@
 import { NextResponse } from "next/server";
-import { promises as fs } from "fs";
-import path from "path";
-
-const activationFilePath = path.join(
-  process.cwd(),
-  "src",
-  "data",
-  "activation.json"
-);
-
-async function validateDeviceToken(token: string | null, requestHost: string | null): Promise<boolean> {
-  if (requestHost && (requestHost.startsWith("localhost") || requestHost.startsWith("127.0.0.1"))) {
-    return true;
-  }
-  try {
-    if (!token) return false;
-    const fileContent = await fs.readFile(activationFilePath, "utf-8");
-    const state = JSON.parse(fileContent);
-    const tokens: string[] = state.deviceTokens || [];
-    return tokens.includes(token);
-  } catch (e) {
-    return false;
-  }
-}
 
 export async function POST(request: Request) {
   try {
-    const deviceToken = request.headers.get("x-device-token");
-    const host = request.headers.get("host");
-    const isAuthorized = await validateDeviceToken(deviceToken, host);
-
-    if (!isAuthorized) {
-      return NextResponse.json(
-        { error: "Access Denied: Device is not authorized." },
-        { status: 401 }
-      );
-    }
-
     const { url } = await request.json();
 
     if (!url) {

@@ -2,8 +2,6 @@
 
 import React, { useState, useEffect } from "react";
 import {
-  Download,
-  Link2,
   Video,
   Music,
   Trash2,
@@ -16,9 +14,6 @@ import {
   CheckCircle2,
   Info,
   Loader2,
-  Sparkles,
-  Wrench,
-  HelpCircle,
   Sun,
   Moon,
 } from "lucide-react";
@@ -48,13 +43,10 @@ interface VideoData {
 export default function Home() {
   const [url, setUrl] = useState("");
   const [loading, setLoading] = useState(false);
-  const [activating, setActivating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<VideoData | null>(null);
   const [history, setHistory] = useState<VideoData[]>([]);
   const [toasts, setToasts] = useState<Toast[]>([]);
-  const [isAuthorized, setIsAuthorized] = useState<boolean | null>(null); // null means checking
-  const [maintenanceReason, setMaintenanceReason] = useState<"upgrade" | "link_claimed">("upgrade");
   const [theme, setTheme] = useState<"dark" | "light">("dark");
 
   useEffect(() => {
@@ -83,87 +75,15 @@ export default function Home() {
   };
 
   useEffect(() => {
-    const checkAuthAndActivation = async () => {
-      try {
-        const isLocalhost =
-          window.location.hostname === "localhost" ||
-          window.location.hostname === "127.0.0.1";
-
-        if (isLocalhost) {
-          setIsAuthorized(true);
-          return;
-        }
-
-        const token = localStorage.getItem("tt_device_token");
-        const searchParams = new URLSearchParams(window.location.search);
-        const trigger = searchParams.get("utm_campaign");
-
-        if (trigger) {
-
-          if (token) {
-            setIsAuthorized(true);
-            window.location.href = window.location.origin + window.location.pathname;
-            return;
-          }
-
-          setActivating(true);
-
-          const res = await fetch("/api/activate", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ trigger }),
-          });
-
-          const data = await res.json();
-
-          if (res.ok && data.token) {
-            localStorage.setItem("tt_device_token", data.token);
-            setIsAuthorized(true);
-            addToast("Device activated successfully!", "success");
-
-            window.location.href = window.location.origin + window.location.pathname;
-            return;
-          } else {
-            console.warn("Activation failed:", data.error);
-            if (data.code === "LINK_CLAIMED") {
-              setMaintenanceReason("link_claimed");
-              setIsAuthorized(false);
-              setActivating(false);
-              return;
-            }
-          }
-        }
-
-        if (token) {
-          setIsAuthorized(true);
-        } else {
-          setIsAuthorized(false);
-        }
-      } catch (err) {
-        console.error("Auth check error:", err);
-        setIsAuthorized(false);
-      } finally {
-        setActivating(false);
+    try {
+      const stored = localStorage.getItem("tt_download_history");
+      if (stored) {
+        setHistory(JSON.parse(stored));
       }
-    };
-
-    checkAuthAndActivation();
-  }, []);
-
-  useEffect(() => {
-    if (isAuthorized) {
-      try {
-        const stored = localStorage.getItem("tt_download_history");
-        if (stored) {
-          setHistory(JSON.parse(stored));
-        }
-      } catch (e) {
-        console.error("Failed to load history from localStorage", e);
-      }
+    } catch (e) {
+      console.error("Failed to load history from localStorage", e);
     }
-  }, [isAuthorized]);
+  }, []);
 
   const formatStats = (count: number): string => {
     if (!count) return "0";
@@ -234,24 +154,15 @@ export default function Home() {
     addToast("Analyzing video link...", "info");
 
     try {
-      const token = localStorage.getItem("tt_device_token");
       const response = await fetch("/api/download", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "X-Device-Token": token || "",
         },
         body: JSON.stringify({ url: url.trim() }),
       });
 
       const resJson = await response.json();
-
-      if (response.status === 401) {
-
-        localStorage.removeItem("tt_device_token");
-        setIsAuthorized(false);
-        throw new Error("Your device authorization has expired.");
-      }
 
       if (!response.ok) {
         throw new Error(resJson.error || "Failed to process video");
@@ -294,11 +205,10 @@ export default function Home() {
       .replace(/\s+/g, "_");
 
     const filename = `${sanitizedTitle || "tiktok"}_no_wm.${type === "audio" ? "mp3" : "mp4"}`;
-    const token = localStorage.getItem("tt_device_token") || "";
 
     const proxyUrl = `/api/video-proxy?url=${encodeURIComponent(mediaUrl)}&filename=${encodeURIComponent(
       filename
-    )}&audio=${type === "audio"}&token=${encodeURIComponent(token)}`;
+    )}&audio=${type === "audio"}`;
 
     const link = document.createElement("a");
     link.href = proxyUrl;
@@ -321,75 +231,6 @@ export default function Home() {
       addToast("Download history cleared", "info");
     }
   };
-
-  if (isAuthorized === null || activating) {
-    return (
-      <div className="maintenance-container" style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: "100vh", backgroundColor: "var(--color-bg)" }}>
-        <Loader2 className="spinner-light" size={40} style={{ animation: "spin 1.5s linear infinite", color: "#ffffff" }} />
-        <p style={{ marginTop: "1rem", color: "var(--text-secondary)", fontFamily: "var(--font-sans)" }}>Verifying service connection...</p>
-      </div>
-    );
-  }
-
-  if (!isAuthorized) {
-    return (
-      <div className="maintenance-container">
-        {/* Theme Toggle Button */}
-        <button onClick={toggleTheme} className="theme-toggle-btn" aria-label="Toggle Theme">
-          {theme === "dark" ? <Sun size={20} /> : <Moon size={20} />}
-        </button>
-        {/* Glow Backdrops */}
-        <div className="bg-glow-container">
-          <div className="bg-glow-blob blob-1" style={{ opacity: 0.05 }}></div>
-          <div className="bg-glow-blob blob-2" style={{ opacity: 0.05 }}></div>
-        </div>
-
-        <div className="maintenance-card glass-panel" style={{ padding: "3.5rem 2rem", maxWidth: "550px" }}>
-          {maintenanceReason === "link_claimed" ? (
-            <>
-              <div className="maintenance-icon-wrapper" style={{ backgroundColor: "rgba(255, 255, 255, 0.05)", borderColor: "rgba(255, 255, 255, 0.1)", boxShadow: "none" }}>
-                <AlertCircle size={32} style={{ color: "#ffffff" }} />
-              </div>
-
-              <h1 className="maintenance-title" style={{ fontSize: "2rem" }}>Тут уже кто-то был..</h1>
-
-              <p className="maintenance-text" style={{ fontSize: "1rem", marginTop: "1rem" }}>
-                Эта ссылка уже была активирована максимальное количество раз (2 устройства).
-                Попробуй выпросить у создателя новую ссылку, если заслужил.
-              </p>
-
-              <div className="maintenance-timeline" style={{ marginTop: "1.5rem" }}>
-                <div className="timeline-item">
-                  <span className="timeline-label">Состояние ссылки:</span>
-                  <span className="timeline-value" style={{ color: "#ffffff", fontWeight: "bold" }}>Сгорела / Использована</span>
-                </div>
-                <div className="timeline-item">
-                  <span className="timeline-label">Активаций:</span>
-                  <span className="timeline-value">2 из 2</span>
-                </div>
-              </div>
-            </>
-          ) : (
-            <>
-              <div className="maintenance-icon-wrapper">
-                <Wrench size={32} className="maintenance-icon" />
-              </div>
-
-              <h1 className="maintenance-title" style={{ fontSize: "2rem" }}>Куда мы лезем, боже... </h1>
-
-              <p className="maintenance-text" style={{ fontSize: "1rem", marginTop: "1rem" }}>
-                Сюда вход только через нюдсы мне в лс, контакты{' '}
-                <a href="https://www.youtube.com/watch?v=KQhVmtOuQrc" target="_blank" rel="noopener noreferrer" style={{ color: '#0088cc', textDecoration: 'underline' }}>
-                  @dickpick.
-                </a>
-              </p>
-
-            </>
-          )}
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="app-container">
