@@ -1,36 +1,95 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Bodyan Downloader 🚀
 
-## Getting Started
+A premium, strictly monochrome, ultra-minimalist TikTok video and MP3 audio downloader featuring a **Stealth Device-Binding Firewall**.
 
-First, run the development server:
+---
 
+## 🎨 Preview & UI Design
+
+*Place your application screenshots here!*
+
+- **Dark Mode**: 
+  ![Dark Mode Screenshot](/path/to/dark-screenshot.png)
+- **Light Mode**: 
+  ![Light Mode Screenshot](/path/to/light-screenshot.png)
+
+---
+
+## 🔥 Key Features
+
+- **TikTok Media Parsing**: Downloads high-definition videos without watermarks and extracts pure MP3 audio tracks instantly.
+- **Strictly Monochrome Theme**: An ultra-clean black-and-white visual layout.
+- **Monochrome Theme Switcher**: Easily toggle between a **Pure Black** theme and a **Pure White** theme. Choice is persisted in `localStorage`.
+- **Invitation-Only Stealth Firewall**: 
+  - Prevents public access to the downloader interface.
+  - Unauthorized visitors see a realistic **"Доступ ограничен"** fake lock screen.
+  - Visiting the secret invite link binds the client browser to the database (configured for exactly **2 activations**).
+  - If a third device visits the invite link, they receive a **"Лимит активаций исчерпан"** lock screen.
+- **Localhost Developer Bypass**: Skips authorization checks on `localhost:3000` to allow offline testing.
+- **Persisted History**: Saves recent downloads directly to the browser's `localStorage` for fast re-access.
+
+---
+
+## 🛠️ Tech Stack
+
+- **Core**: [Next.js App Router](https://nextjs.org/) & [TypeScript](https://www.typescriptlang.org/)
+- **Icons**: [Lucide React](https://lucide.dev/)
+- **Styling**: Vanilla CSS
+- **Media Engine**: TikTok No-Watermark API (RapidAPI)
+
+---
+
+## ⚙️ Setup & Installation
+
+### 1. Install Dependencies
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 2. Configure Environment Variables
+Create a `.env` file in the project root:
+```env
+# RapidAPI Credentials (tiktok-video-no-watermark2)
+RAPIDAPI_KEY=your_rapidapi_key_here
+RAPIDAPI_HOST=tiktok-video-no-watermark2.p.rapidapi.com
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+# Stealth Firewall Invite Parameter
+STEALTH_SECRET_TRIGGER=beta-testing
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### 3. Initialize Activation Database
+Create a JSON file at `src/data/activation.json` if it does not exist:
+```json
+{
+  "deviceTokens": []
+}
+```
 
-## Learn More
+---
 
-To learn more about Next.js, take a look at the following resources:
+## 🚀 Running the App
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### Development Server
+```bash
+npm run dev
+```
+Open `http://localhost:3000` inside your browser to start local testing. (Bypasses firewall automatically on localhost).
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### Build for Production
+```bash
+npm run build
+npm start
+```
 
-## Deploy on Vercel
+---
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 🔒 Stealth Firewall Management
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- **Invite Link Format**: `http://<your-domain>/?utm_campaign=beta-testing`
+- **Resetting Activations**:
+  If you or your friend needs to log in from a new device, open `src/data/activation.json` and reset the registered token list:
+  ```json
+  {
+    "deviceTokens": []
+  }
+  ```
