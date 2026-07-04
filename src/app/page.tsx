@@ -260,10 +260,8 @@ export default function Home() {
       if (navigator.canShare && navigator.canShare({ files: [file] })) {
         await navigator.share({
           files: [file],
-          title: title || "TikTok Download",
-          text: title || "TikTok Download",
         });
-        addToast("Готово! Выберите 'Сохранить видео' или отправьте его", "success");
+        addToast("Готово!", "success");
       } else {
         throw new Error("Ваш браузер не поддерживает отправку этого типа файлов");
       }
