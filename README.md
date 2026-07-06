@@ -1,17 +1,17 @@
 # Bodyan Downloader 🚀
 
-A premium, strictly monochrome, ultra-minimalist TikTok video and MP3 audio downloader featuring a **Stealth Device-Binding Firewall**.
+A premium, strictly monochrome, ultra-minimalist TikTok video and MP3 audio downloader made personally for my girlfriend.
 
 ---
 
 ## 🎨 Preview & UI Design
 
 
-
 - **Dark Mode**: 
-  ![Dark Mode Screenshot](/path/to/dark-screenshot.png)
+<img width="231" height="444" alt="Screenshot Dark 1" src="https://github.com/user-attachments/assets/fe9e5736-39f3-44e7-867f-3628eeac6754" /> <img width="231" height="444" alt="Screenshot Dark 2" src="https://github.com/user-attachments/assets/37571317-52b2-4d99-9a1d-16286dda7998" />
+
 - **Light Mode**: 
-  ![Light Mode Screenshot](/path/to/light-screenshot.png)
+<img width="231" height="444" alt="Screenshot Light 1" src="https://github.com/user-attachments/assets/b8bdfebb-ddc4-4e22-b69d-f0b499c32eef" /> <img width="231" height="444" alt="Screenshot Light 2" src="https://github.com/user-attachments/assets/4232484c-d050-4555-ae37-20cb48a2efad" />
 
 ---
 
